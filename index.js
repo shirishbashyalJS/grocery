@@ -37,10 +37,28 @@ mongoose.connect(process.env.MONGO_URL).then((e) =>
 //Products
 
 //Get the responce as products data
-server.get('/nbgs/products',async (req,res)=>{
-  const productsInfo = await products.find();
-  res.json(productsInfo)
-})
+// server.get('/nbgs/products',async (req,res)=>{
+//   const productsInfo = await products.find();
+//   res.json(productsInfo)
+// })
+server.get('/nbgs/products', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
+  const cursor = products.find().cursor(); // Fetch data as a cursor
+  res.write('['); // Start JSON array
+  let isFirstChunk = true;
+
+  for await (const product of cursor) {
+    if (!isFirstChunk) res.write(',');
+    res.write(JSON.stringify(product));
+    isFirstChunk = false;
+  }
+
+  res.write(']'); // End JSON array
+  res.end(); // Close the response
+
+});
+
 
 //update products name,rate,...
 server.put('/nbgs/products/:id',async (req,res)=>{ 
